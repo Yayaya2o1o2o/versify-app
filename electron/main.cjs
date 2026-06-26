@@ -228,7 +228,7 @@ function buildSegments(json) {
   return segments;
 }
 
-const NOTES_PROMPT = (transcript) => `You are Mira, an AI meeting notepad. From the meeting transcript below, produce concise, useful notes.
+const NOTES_PROMPT = (transcript) => `You are Versify, an AI meeting notepad. From the meeting transcript below, produce concise, useful notes.
 
 Return ONLY valid JSON with this exact shape:
 {

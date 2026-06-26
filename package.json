@@ -1,8 +1,8 @@
 {
-  "name": "notify",
+  "name": "versify",
   "version": "0.1.0",
-  "description": "The notepad that listens — a local, private AI meeting notepad.",
-  "author": "Notify",
+  "description": "Versify — the notepad that listens. A local, private AI meeting notepad.",
+  "author": "Versify",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
@@ -27,8 +27,8 @@
     "wait-on": "^8.0.1"
   },
   "build": {
-    "appId": "com.notify.app",
-    "productName": "Notify",
+    "appId": "com.versify.app",
+    "productName": "Versify",
     "files": ["dist/**/*", "electron/**/*"],
     "extraResources": [{ "from": "models", "to": "models" }],
     "artifactName": "${productName}-${version}-${arch}.${ext}",

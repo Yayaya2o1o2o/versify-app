@@ -159,7 +159,7 @@ function TitleBar() {
         <button className="lit min" onClick={() => window.notify?.minimize()} title="Minimize" />
         <span className="lit dim" />
       </div>
-      <span className="tb-title osw">MIRA</span>
+      <span className="tb-title osw">VERSIFY</span>
       <div style={{ width: 54 }} />
     </div>
   );
@@ -176,7 +176,7 @@ function Sidebar({ section, setSection, onRecord, noteCount }) {
     <div className="sidebar">
       <div className="side-brand">
         <PixelMark size={26} />
-        <span className="osw">MIRA</span>
+        <span className="osw">VERSIFY</span>
       </div>
       <nav className="side-nav">
         {items.map(([k, label, ic]) => (
@@ -204,7 +204,7 @@ function Home({ notes, meetings, onRecord, onOpen, onAddMeeting, onSeeAll }) {
       <div className="hello">
         <div className="eyebrow osw">// {greeting()}</div>
         <h1 className="osw">Ready when you are</h1>
-        <p className="lead">Hit record and Mira listens to the room — both your mic and the people on the call — then writes the notes, action items and decisions. Everything runs on your Mac.</p>
+        <p className="lead">Hit record and Versify listens to the room — both your mic and the people on the call — then writes the notes, action items and decisions. Everything runs on your Mac.</p>
         <button className="cta-green osw" onClick={onRecord}><span className="rec-dot on" /> Start recording</button>
       </div>
 
@@ -367,7 +367,7 @@ function Settings({ settings, setSettings, onReplayTour, count }) {
           <span className="osw mini">{isElectron ? "LOCAL" : "BROWSER"}</span>
         </Row>
       </section>
-      <div className="about osw">MIRA · THE NOTEPAD THAT LISTENS · v0.1.0 · ON-DEVICE &amp; PRIVATE</div>
+      <div className="about osw">VERSIFY · THE NOTEPAD THAT LISTENS · v0.1.0 · ON-DEVICE &amp; PRIVATE</div>
     </div>
   );
 }
@@ -391,7 +391,7 @@ function Welcome({ onStart }) {
       <PixelField />
       <motion.div className="welcome-card" initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={soft}>
         <PixelMark size={64} glow />
-        <h1 className="osw">MIRA</h1>
+        <h1 className="osw">VERSIFY</h1>
         <div className="welcome-sub osw">// THE NOTEPAD THAT LISTENS</div>
         <p>An AI meeting notepad that turns messy conversations into clean notes, action items and decisions — capturing both your mic and the people on the call. Private by default. Nothing leaves your Mac.</p>
         <button className="cta-green big osw no-drag" onClick={onStart}>Get started ↘</button>
@@ -405,7 +405,7 @@ function Welcome({ onStart }) {
 const TOUR = [
   { ic: "◆", t: "This is home base", d: "Your day at a glance — upcoming meetings up top, your latest notes below. Start a recording from anywhere with one click." },
   { ic: "●", t: "Record in one tap", d: "Hit Record and a small pill floats over whatever you're doing. It listens to your mic AND the other side of the call, fully on-device." },
-  { ic: "▤", t: "Every note, by date", d: "When you stop, Mira writes a title, summary, key points, action items and a speaker-by-speaker transcript — filed neatly by day." },
+  { ic: "▤", t: "Every note, by date", d: "When you stop, Versify writes a title, summary, key points, action items and a speaker-by-speaker transcript — filed neatly by day." },
   { ic: "✦", t: "Yours, and private", d: "No account, no cloud, no subscription. Speaker capture and transcription all run locally. You're ready — let's go." },
 ];
 function Tour({ onDone }) {
@@ -426,7 +426,7 @@ function Tour({ onDone }) {
         <div className="tour-dots">{TOUR.map((_, k) => <span key={k} className={k === i ? "on" : ""} />)}</div>
         <div className="tour-actions">
           {i > 0 ? <button className="link osw" onClick={() => setI(i - 1)}>Back</button> : <button className="link osw" onClick={onDone}>Skip</button>}
-          <button className="cta-green osw" onClick={() => (last ? onDone() : setI(i + 1))}>{last ? "Enter Mira ↘" : "Next"}</button>
+          <button className="cta-green osw" onClick={() => (last ? onDone() : setI(i + 1))}>{last ? "Enter Versify ↘" : "Next"}</button>
         </div>
       </motion.div>
     </div>
@@ -512,7 +512,7 @@ function PixelMark({ size = 28, glow }) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     cv.width = size * dpr; cv.height = size * dpr;
     const x = cv.getContext("2d"); const n = (size * dpr) / 4;
-    const m = ["g..g", "gg.g", "g.gg", "g..g"];
+    const m = ["g..g", "g..g", ".gg.", ".gg."]; // pixel V
     m.forEach((r, ri) => { for (let i = 0; i < 4; i++) if (r[i] === "g") { x.fillStyle = i % 2 ? "#88FF63" : "#B6FF8C"; x.fillRect(i * n, ri * n, n, n); } });
   }, [size]);
   return <canvas ref={ref} className={"pixel-mark" + (glow ? " glow" : "")} style={{ width: size, height: size }} />;
@@ -575,7 +575,7 @@ function demoResult() {
   return {
     notes: {
       title: "Untitled recording",
-      summary: "This is a web-preview recording. In the desktop app, Mira transcribes your audio on-device and writes real notes, action items and decisions here.",
+      summary: "This is a web-preview recording. In the desktop app, Versify transcribes your audio on-device and writes real notes, action items and decisions here.",
       notes: ["Mic and speaker audio were captured", "Notes are generated locally with whisper + a local LLM"],
       actions: [{ text: "Try the desktop build for real transcription", owner: "You", due: "" }],
       agenda: [{ topic: "Preview", detail: "Demo note from the web preview" }],
