@@ -227,8 +227,8 @@ function Dock({ onOpen }) {
       }}
     >
       <Dot size={24} />
-      <span className="serif" style={{ fontSize: 19, lineHeight: 1 }}>Notify</span>
-      <span style={{ fontSize: 12, color: "var(--ink-faint)" }}>tap to listen</span>
+      <span className="serif" style={{ fontSize: 19, lineHeight: 1, letterSpacing: "0.14em" }}>Mira</span>
+      <span style={{ fontSize: 12, color: "var(--ink-faint)" }}>// tap to listen</span>
     </motion.div>
   );
 }
@@ -240,7 +240,7 @@ function Ready({ onClose, onRecord, onExpand }) {
       <Header title="Ready when you are" onClose={onClose} onExpand={onExpand} />
       <div style={{ padding: "2px 20px 20px" }}>
         <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 16 }}>
-          Notify listens through your mic and writes the notes, action items and
+          Mira listens through your mic and writes the notes, action items and
           follow-ups. Everything runs locally on your Mac — nothing leaves the
           device.
         </p>
@@ -379,9 +379,9 @@ function Recording({ onDone, onCancel, onError }) {
             onClick={() => stop(true)}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            style={{ ...primaryBtn, background: "var(--ink)", flex: 1.6 }}
+            style={{ ...primaryBtn, background: "var(--yellow)", boxShadow: "4px 4px 0 #8a4f1e", flex: 1.6 }}
           >
-            <span style={{ width: 9, height: 9, borderRadius: 3, background: "#fff" }} />
+            <span style={{ width: 9, height: 9, borderRadius: 2, background: "#0A0B0D" }} />
             Stop &amp; write notes
           </motion.button>
         </div>
@@ -426,7 +426,7 @@ function Processing({ progress }) {
         <motion.div
           animate={{ width: `${(step / 3) * 100}%` }}
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
-          style={{ height: "100%", background: "var(--yellow)", borderRight: "2px solid var(--ink)" }}
+          style={{ height: "100%", background: "var(--mint-deep)", borderRight: "2px solid var(--line)" }}
         />
       </div>
     </motion.div>
@@ -537,7 +537,7 @@ function FullApp({ result, onRestore, onMinimize, onClose, onAgain }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           <Dot size={18} />
           <span className="display" style={{ fontSize: 17, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {notes.title || "Notify"}
+            {notes.title || "Mira"}
           </span>
           {hasContent && (
             <span style={{ fontSize: 11.5, color: "var(--ink-soft)", whiteSpace: "nowrap", fontWeight: 600 }}>
@@ -656,7 +656,7 @@ function ActionRow({ a, i }) {
         {(a.owner || a.due) && (
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6 }}>
             {a.owner && <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{a.owner}</span>}
-            {a.due && <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--ink)", background: "var(--yellow)", border: "1.5px solid var(--ink)", padding: "1px 7px", borderRadius: 6 }}>{a.due}</span>}
+            {a.due && <span style={{ fontSize: 10.5, fontWeight: 700, color: "#0A0B0D", background: "var(--yellow)", border: "1.5px solid var(--yellow)", padding: "1px 7px", borderRadius: 999 }}>{a.due}</span>}
           </div>
         )}
       </div>
@@ -754,7 +754,7 @@ function Dot({ size = 24, live, pulse }) {
           style={{ position: "absolute", inset: 0, borderRadius: 99, background: "var(--yellow)" }} />
       )}
       <motion.span animate={live ? { scale: [1, 1.12, 1] } : { scale: 1 }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-        style={{ width: size * 0.64, height: size * 0.64, borderRadius: 99, background: live ? "var(--yellow)" : "var(--mint-deep)", border: "2px solid var(--ink)" }} />
+        style={{ width: size * 0.64, height: size * 0.64, borderRadius: 99, background: live ? "var(--yellow)" : "var(--mint-deep)", border: "2px solid #0A0B0D", boxShadow: live ? "0 0 10px rgba(255,179,107,0.6)" : "0 0 10px rgba(136,255,99,0.5)" }} />
     </span>
   );
 }
@@ -812,11 +812,12 @@ function copyNotes(notes, segments) {
 }
 
 /* -------------------------------- styles -------------------------------- */
-const headerBase = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 14px 12px 16px", borderBottom: "2px solid var(--ink)" };
-const primaryBtn = { width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 16px", borderRadius: 10, border: "2px solid var(--ink)", background: "var(--ink)", color: "var(--paper)", fontSize: 13, fontWeight: 700, letterSpacing: "0.02em" };
-const ghostBtn = { display: "flex", alignItems: "center", justifyContent: "center", padding: "12px 16px", borderRadius: 10, border: "2px solid var(--ink)", background: "var(--panel)", color: "var(--ink)", fontSize: 13, fontWeight: 700 };
-const iconBtn = { width: 26, height: 26, borderRadius: 8, border: "2px solid var(--ink)", background: "var(--panel)", color: "var(--ink)", fontSize: 14, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 };
-const winBtn = { width: 26, height: 26, borderRadius: 8, border: "2px solid var(--ink)", background: "var(--panel)", color: "var(--ink)", fontSize: 14, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 };
-const navBtn = (a) => ({ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 12px", borderRadius: 8, border: a ? "2px solid var(--ink)" : "2px solid transparent", background: a ? "var(--ink)" : "transparent", color: a ? "var(--paper)" : "var(--ink)", fontSize: 13, fontWeight: 700, textAlign: "left", width: "100%" });
-const tabBtn = (a) => ({ display: "flex", alignItems: "center", gap: 5, padding: "6px 11px", borderRadius: 7, border: "2px solid var(--ink)", background: a ? "var(--ink)" : "var(--panel)", color: a ? "var(--paper)" : "var(--ink)", fontSize: 12, fontWeight: 700 });
-const tabBadge = (a) => ({ fontSize: 10, fontWeight: 800, background: a ? "var(--yellow)" : "var(--yellow)", color: "var(--ink)", borderRadius: 6, padding: "1px 5px" });
+const osw = '"Oswald", "Helvetica Neue", Arial, sans-serif';
+const headerBase = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 14px 12px 16px", borderBottom: "2px dotted var(--line)" };
+const primaryBtn = { width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 18px", borderRadius: 999, border: "none", background: "var(--mint-deep)", color: "#0A0B0D", fontFamily: osw, textTransform: "uppercase", fontSize: 13.5, fontWeight: 600, letterSpacing: "0.06em", boxShadow: "4px 4px 0 var(--green-deep)" };
+const ghostBtn = { display: "flex", alignItems: "center", justifyContent: "center", padding: "13px 18px", borderRadius: 999, border: "2px solid #2A2E2A", background: "transparent", color: "var(--ink)", fontFamily: osw, textTransform: "uppercase", fontSize: 13, fontWeight: 600, letterSpacing: "0.04em" };
+const iconBtn = { width: 27, height: 27, borderRadius: 8, border: "2px solid var(--line)", background: "var(--panel-raised)", color: "var(--ink)", fontSize: 14, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 };
+const winBtn = { width: 27, height: 27, borderRadius: 8, border: "2px solid var(--line)", background: "var(--panel-raised)", color: "var(--ink)", fontSize: 14, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 };
+const navBtn = (a) => ({ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 13px", borderRadius: 999, border: a ? "2px solid var(--mint-deep)" : "2px solid transparent", background: a ? "rgba(136,255,99,0.08)" : "transparent", color: a ? "var(--mint-deep)" : "var(--ink-soft)", fontFamily: osw, textTransform: "uppercase", fontSize: 12.5, fontWeight: 600, letterSpacing: "0.04em", textAlign: "left", width: "100%" });
+const tabBtn = (a) => ({ display: "flex", alignItems: "center", gap: 5, padding: "7px 13px", borderRadius: 999, border: a ? "2px solid var(--mint-deep)" : "2px solid var(--line)", background: a ? "var(--mint-deep)" : "transparent", color: a ? "#0A0B0D" : "var(--ink-soft)", fontFamily: osw, textTransform: "uppercase", fontSize: 11.5, fontWeight: 600, letterSpacing: "0.04em" });
+const tabBadge = (a) => ({ fontSize: 10, fontWeight: 700, background: a ? "#0A0B0D" : "var(--mint-deep)", color: a ? "var(--mint-deep)" : "#0A0B0D", borderRadius: 999, padding: "1px 6px" });

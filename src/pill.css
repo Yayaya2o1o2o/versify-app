@@ -1,21 +1,24 @@
-@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inconsolata:wght@400;500;600;700&display=swap");
 
 :root {
-  /* Retro editorial palette — pale mint paper, hard black, yellow + teal */
-  --paper: #eef5ec;
-  --panel: #f7faf4;
-  --cream-deep: #e4eee0;
-  --ink: #121611;
-  --ink-soft: #3b423a;
-  --ink-faint: #8a918688;
-  --mint: #a8ddd6;
-  --mint-deep: #79c6bd;
-  --sage: #79c6bd;
-  --yellow: #f4d64e;
-  --terracotta: #121611;
-  --terracotta-deep: #121611;
-  --terracotta-soft: #f4d64e;
-  --line: #121611;
+  /* Mira — dark pixel-terminal palette (matches the website) */
+  --bg: #0A0B0D;
+  --panel: #0E1014;
+  --panel-raised: #14181D;
+  --cream-deep: #15191D;        /* subtle raised block bg */
+  --ink: #ECECE3;              /* primary foreground (light) */
+  --ink-soft: #9AA095;
+  --ink-faint: #5C615A;
+  --mint: #B6FF8C;
+  --mint-deep: #88FF63;        /* primary green */
+  --sage: #88FF63;
+  --green-deep: #245A18;       /* offset button shadow */
+  --yellow: #FFB36B;           /* warm accent (orange) */
+  --terracotta: #88FF63;
+  --terracotta-deep: #5FE03F;
+  --terracotta-soft: #FFB36B;
+  --line: #23282A;             /* dotted border / divider */
+  --paper: #0A0B0D;            /* text drawn on top of green/accent fills */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,16 +28,21 @@ html, body, #root {
   width: 100%;
   background: transparent !important;
   overflow: hidden;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Inconsolata", ui-monospace, SFMono-Regular, monospace;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   user-select: none;
   cursor: default;
 }
 
-/* heavy display type for headings / wordmark */
+/* display type for headings / wordmark — matches the site's Oswald */
 .serif,
-.display { font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; font-weight: 900; letter-spacing: -0.02em; }
+.display {
+  font-family: "Oswald", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
 
 .stage {
   position: fixed;
@@ -59,22 +67,22 @@ html, body, #root {
   flex-direction: column;
   border-radius: 16px;
   overflow: hidden;
-  background: var(--panel);
-  border: 2px solid var(--ink);
-  box-shadow: 5px 6px 0 rgba(18, 22, 17, 0.92);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.62), inset 0 0 0 1px rgba(136, 255, 99, 0.05);
 }
 
 .shell {
   width: 100%;
-  background: var(--panel);
-  border: 2px solid var(--ink);
-  box-shadow: 5px 6px 0 rgba(18, 22, 17, 0.92);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(136, 255, 99, 0.05);
   overflow: hidden;
 }
 
 .soft-scroll::-webkit-scrollbar { width: 7px; }
-.soft-scroll::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 0; }
+.soft-scroll::-webkit-scrollbar-thumb { background: var(--mint-deep); border-radius: 0; }
 .soft-scroll::-webkit-scrollbar-track { background: transparent; }
 
 button { font-family: inherit; cursor: pointer; }
-::selection { background: var(--yellow); }
+::selection { background: var(--mint-deep); color: #0A0B0D; }
