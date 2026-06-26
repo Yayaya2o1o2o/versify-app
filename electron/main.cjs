@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, systemPreferences, screen, session } = require("electron");
+const { app, BrowserWindow, ipcMain, systemPreferences, screen, session, desktopCapturer } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -28,30 +28,30 @@ const WHISPER_MODEL = path.join(modelsDir(), "ggml-small.en-tdrz.bin");
 const OLLAMA_MODEL = process.env.NOTIFY_OLLAMA_MODEL || "llama3.2:3b";
 
 let win;
-let mode = "pill"; // "pill" (content-fit, bottom-anchored) | "full" (resizable app)
+let mode = "home"; // "home" (full app window) | "hud" (floating recording pill)
+
+const HUD = { w: 460, h: 600 };
 
 function createWindow() {
+  const { width } = screen.getPrimaryDisplay().workAreaSize;
   win = new BrowserWindow({
-    width: 320,
-    height: 96,
-    minWidth: 280,
+    width: Math.min(1000, width - 80),
+    height: 720,
+    minWidth: 760,
+    minHeight: 560,
     frame: false,
     transparent: true,
-    resizable: false,
-    hasShadow: false, // shadow drawn in CSS so it follows the pill shape
-    alwaysOnTop: true,
+    resizable: true,
+    hasShadow: false, // drawn in CSS so it follows the rounded shape
     fullscreenable: false,
-    skipTaskbar: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
-  win.setAlwaysOnTop(true, "floating");
-  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  win.center();
 
-  // forward renderer diagnostics to the terminal log
   win.webContents.on("console-message", (_e, level, message) => {
     console.log(`[renderer] ${message}`);
   });
@@ -61,28 +61,25 @@ function createWindow() {
   win.webContents.on("did-fail-load", (_e, code, desc) =>
     console.log("[renderer] did-fail-load:", code, desc)
   );
-  win.webContents.on("did-finish-load", () =>
-    console.log("[renderer] did-finish-load OK")
-  );
 
-  if (DEV) {
-    win.loadURL("http://localhost:5273");
-  } else {
-    win.loadFile(path.join(__dirname, "..", "dist", "index.html"));
-  }
+  if (DEV) win.loadURL("http://localhost:5273");
+  else win.loadFile(path.join(__dirname, "..", "dist", "index.html"));
 }
 
 app.whenReady().then(() => {
-  // allow the renderer's getUserMedia mic request through Electron's session layer
   const allow = (perm) =>
-    ["media", "microphone", "audioCapture"].includes(perm);
-  session.defaultSession.setPermissionRequestHandler((_wc, perm, cb) => {
-    console.log("[perm] request:", perm);
-    cb(allow(perm));
-  });
-  session.defaultSession.setPermissionCheckHandler((_wc, perm) => {
-    console.log("[perm] check:", perm);
-    return allow(perm);
+    ["media", "microphone", "audioCapture", "display-capture", "desktopCapturer"].includes(perm);
+  session.defaultSession.setPermissionRequestHandler((_wc, perm, cb) => cb(allow(perm)));
+  session.defaultSession.setPermissionCheckHandler((_wc, perm) => allow(perm));
+
+  // System audio (the other side of the call) via ScreenCaptureKit loopback.
+  // The renderer calls getDisplayMedia({ video, audio }) and we hand back the
+  // screen source with audio:'loopback' — macOS 13+ routes system audio in.
+  session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
+    desktopCapturer
+      .getSources({ types: ["screen"] })
+      .then((sources) => callback({ video: sources[0], audio: "loopback" }))
+      .catch(() => callback({}));
   });
 
   createWindow();
@@ -92,63 +89,66 @@ app.whenReady().then(() => {
 });
 app.on("window-all-closed", () => app.quit());
 
-/* ---- window controls from renderer ---- */
-ipcMain.on("resize", (_e, { width, height }) => {
-  if (!win || mode === "full") return; // in full mode the user controls size
-  const [x, y] = win.getPosition();
-  const oldH = win.getBounds().height;
-  // keep the pill's bottom edge anchored as it grows upward
-  const newY = y + (oldH - Math.round(height));
-  win.setBounds(
-    { x, y: newY, width: Math.round(width), height: Math.round(height) },
-    false
-  );
-});
-ipcMain.on("set-pos", (_e, { x, y }) => {
-  if (win && mode !== "full") win.setPosition(Math.round(x), Math.round(y), false);
-});
-
-// manual drag-resize from a corner grip (top-left stays fixed)
-ipcMain.on("resize-to", (_e, { w, h }) => {
-  if (!win || mode === "full") return;
-  const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize;
-  const W = Math.max(300, Math.min(Math.round(w), sw - 16));
-  const H = Math.max(220, Math.min(Math.round(h), sh - 24));
-  const [x, y] = win.getPosition();
-  win.setBounds({ x, y, width: W, height: H }, false);
-});
-
+/* ---- window mode: home (app) <-> hud (floating recording pill) ---- */
 ipcMain.on("set-mode", (_e, m) => {
-  if (!win) return;
+  if (!win || m === mode) return;
   mode = m;
-  if (m === "full") {
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-    const w = Math.min(860, width - 80);
-    const h = Math.min(700, height - 120);
-    win.setResizable(true);
-    win.setMinimumSize(540, 440);
-    win.setMaximumSize(0, 0);
-    win.setSize(w, h, true);
-    win.center();
-  } else {
+  const wa = screen.getPrimaryDisplay().workAreaSize;
+  if (m === "hud") {
     win.setResizable(false);
-    win.setMinimumSize(240, 80);
+    win.setMinimumSize(HUD.w, HUD.h);
+    win.setMaximumSize(HUD.w, HUD.h);
+    win.setSize(HUD.w, HUD.h, false);
+    win.setPosition(wa.width - HUD.w - 24, wa.height - HUD.h - 16, false);
+    win.setAlwaysOnTop(true, "floating");
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  } else {
+    win.setAlwaysOnTop(false);
+    win.setVisibleOnAllWorkspaces(false);
+    win.setMaximumSize(0, 0);
+    win.setMinimumSize(760, 560);
+    win.setResizable(true);
+    const w = Math.min(1000, wa.width - 80);
+    win.setSize(w, 720, false);
+    win.center();
   }
 });
 
+ipcMain.on("set-pos", (_e, { x, y }) => {
+  if (win) win.setPosition(Math.round(x), Math.round(y), false);
+});
 ipcMain.on("minimize", () => win && win.minimize());
 ipcMain.on("quit", () => app.quit());
+
 ipcMain.handle("mic-permission", async () => {
   try {
     const status = systemPreferences.getMediaAccessStatus("microphone");
-    console.log("[mic] system status:", status);
     if (status === "granted") return true;
-    const granted = await systemPreferences.askForMediaAccess("microphone");
-    console.log("[mic] askForMediaAccess ->", granted);
-    return granted;
-  } catch (e) {
-    console.log("[mic] permission check failed:", e.message);
+    return await systemPreferences.askForMediaAccess("microphone");
+  } catch {
     return true;
+  }
+});
+
+/* ---- persistence: JSON blobs under userData ---- */
+function storePath(key) {
+  const safe = String(key).replace(/[^a-z0-9_-]/gi, "");
+  return path.join(app.getPath("userData"), `mira-${safe}.json`);
+}
+ipcMain.handle("store-load", (_e, key) => {
+  try {
+    return JSON.parse(fs.readFileSync(storePath(key), "utf8"));
+  } catch {
+    return null;
+  }
+});
+ipcMain.handle("store-save", (_e, { key, value }) => {
+  try {
+    fs.writeFileSync(storePath(key), JSON.stringify(value));
+    return true;
+  } catch (e) {
+    console.log("[store] save failed:", e.message);
+    return false;
   }
 });
 
@@ -228,7 +228,7 @@ function buildSegments(json) {
   return segments;
 }
 
-const NOTES_PROMPT = (transcript) => `You are Notify, an AI meeting notepad. From the meeting transcript below, produce concise, useful notes.
+const NOTES_PROMPT = (transcript) => `You are Mira, an AI meeting notepad. From the meeting transcript below, produce concise, useful notes.
 
 Return ONLY valid JSON with this exact shape:
 {
@@ -250,37 +250,27 @@ ipcMain.handle("process-audio", async (_e, arrayBuffer) => {
   const send = (stage, detail) =>
     win && win.webContents.send("process-progress", { stage, detail });
 
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "notify-"));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "mira-"));
   const input = path.join(tmp, "input.wav");
   const wav = path.join(tmp, "audio.wav");
   const outBase = path.join(tmp, "out");
 
   try {
     fs.writeFileSync(input, Buffer.from(arrayBuffer));
-    console.log("[pipe] received audio bytes:", Buffer.from(arrayBuffer).length);
 
     send("converting");
-    // normalise to 16 kHz mono PCM for whisper (input may be 44.1/48 kHz)
     await run(FFMPEG, ["-y", "-i", input, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", wav]);
-    console.log("[pipe] wav size:", fs.existsSync(wav) ? fs.statSync(wav).size : "MISSING");
 
     if (!fs.existsSync(WHISPER_MODEL)) {
       throw new Error("Whisper model missing. Still downloading? " + WHISPER_MODEL);
     }
 
     send("transcribing");
-    await run(WHISPER, [
-      "-m", WHISPER_MODEL,
-      "-f", wav,
-      "-tdrz",
-      "-oj",
-      "-of", outBase,
-    ]);
+    await run(WHISPER, ["-m", WHISPER_MODEL, "-f", wav, "-tdrz", "-oj", "-of", outBase]);
 
     const json = JSON.parse(fs.readFileSync(outBase + ".json", "utf8"));
     const segments = buildSegments(json);
     const transcript = segments.map((s) => `Speaker ${s.speaker}: ${s.text}`).join("\n");
-    console.log("[pipe] transcript chars:", transcript.length, "| preview:", transcript.slice(0, 120));
 
     if (!transcript.trim()) {
       return { segments: [], notes: emptyNotes("No speech detected"), transcript: "" };
@@ -320,11 +310,7 @@ function normalizeNotes(n) {
     summary: typeof n.summary === "string" ? n.summary : "",
     notes: Array.isArray(n.notes) ? n.notes.filter((x) => typeof x === "string") : [],
     actions: Array.isArray(n.actions)
-      ? n.actions.map((a) => ({
-          text: a.text || "",
-          owner: a.owner || "",
-          due: a.due || "",
-        })).filter((a) => a.text)
+      ? n.actions.map((a) => ({ text: a.text || "", owner: a.owner || "", due: a.due || "" })).filter((a) => a.text)
       : [],
     agenda: Array.isArray(n.agenda)
       ? n.agenda.map((a) => ({ topic: a.topic || "", detail: a.detail || "" })).filter((a) => a.topic)

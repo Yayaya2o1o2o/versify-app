@@ -1,12 +1,13 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 const api = {
-  resize: (width, height) => ipcRenderer.send("resize", { width, height }),
-  resizeTo: (w, h) => ipcRenderer.send("resize-to", { w, h }),
+  // window
+  setMode: (mode) => ipcRenderer.send("set-mode", mode), // "home" | "hud"
   setPos: (x, y) => ipcRenderer.send("set-pos", { x, y }),
-  setMode: (mode) => ipcRenderer.send("set-mode", mode),
   minimize: () => ipcRenderer.send("minimize"),
   quit: () => ipcRenderer.send("quit"),
+
+  // media + pipeline
   micPermission: () => ipcRenderer.invoke("mic-permission"),
   processAudio: (arrayBuffer) => ipcRenderer.invoke("process-audio", arrayBuffer),
   onProgress: (cb) => {
@@ -14,6 +15,12 @@ const api = {
     ipcRenderer.on("process-progress", handler);
     return () => ipcRenderer.removeListener("process-progress", handler);
   },
+
+  // persistence
+  load: (key) => ipcRenderer.invoke("store-load", key),
+  save: (key, value) => ipcRenderer.invoke("store-save", { key, value }),
+
+  isElectron: true,
 };
 
 contextBridge.exposeInMainWorld("notify", api);
