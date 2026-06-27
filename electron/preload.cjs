@@ -23,4 +23,4 @@ const api = {
   isElectron: true,
 };
 
-contextBridge.exposeInMainWorld("notify", api);
+contextBridge.exposeInMainWorld("versify", api);

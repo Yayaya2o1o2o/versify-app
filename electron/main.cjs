@@ -5,7 +5,7 @@ const os = require("node:os");
 const http = require("node:http");
 const { spawn } = require("node:child_process");
 
-const DEV = !!process.env.NOTIFY_DEV;
+const DEV = !!process.env.VERSIFY_DEV;
 
 /* ---- resolve external tools / models ---- */
 function findBin(name) {
@@ -25,7 +25,7 @@ function modelsDir() {
     : path.join(process.resourcesPath, "models");
 }
 const WHISPER_MODEL = path.join(modelsDir(), "ggml-small.en-tdrz.bin");
-const OLLAMA_MODEL = process.env.NOTIFY_OLLAMA_MODEL || "llama3.2:3b";
+const OLLAMA_MODEL = process.env.VERSIFY_OLLAMA_MODEL || "llama3.2:3b";
 
 let win;
 let mode = "home"; // "home" (full app window) | "hud" (floating recording pill)
@@ -133,7 +133,7 @@ ipcMain.handle("mic-permission", async () => {
 /* ---- persistence: JSON blobs under userData ---- */
 function storePath(key) {
   const safe = String(key).replace(/[^a-z0-9_-]/gi, "");
-  return path.join(app.getPath("userData"), `mira-${safe}.json`);
+  return path.join(app.getPath("userData"), `versify-${safe}.json`);
 }
 ipcMain.handle("store-load", (_e, key) => {
   try {
@@ -250,7 +250,7 @@ ipcMain.handle("process-audio", async (_e, arrayBuffer) => {
   const send = (stage, detail) =>
     win && win.webContents.send("process-progress", { stage, detail });
 
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "mira-"));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "versify-"));
   const input = path.join(tmp, "input.wav");
   const wav = path.join(tmp, "audio.wav");
   const outBase = path.join(tmp, "out");

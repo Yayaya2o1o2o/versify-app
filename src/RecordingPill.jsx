@@ -8,7 +8,7 @@ function useWindowDrag() {
   return useCallback((e) => {
     if (e.button !== 0 || e.target.closest("button")) return;
     const offsetX = e.clientX, offsetY = e.clientY;
-    const onMove = (ev) => window.notify?.setPos(ev.screenX - offsetX, ev.screenY - offsetY);
+    const onMove = (ev) => window.versify?.setPos(ev.screenX - offsetX, ev.screenY - offsetY);
     const onUp = () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
@@ -38,7 +38,7 @@ export default function RecordingPill({ onDone, onCancel }) {
       const got = { mic: false, system: false };
       let micStream = null, sysStream = null;
       try {
-        if (window.notify?.micPermission) await window.notify.micPermission();
+        if (window.versify?.micPermission) await window.versify.micPermission();
         micStream = await navigator.mediaDevices.getUserMedia({
           audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
         });

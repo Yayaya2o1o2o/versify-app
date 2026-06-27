@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import RecordingPill from "./RecordingPill.jsx";
-import { load, save, isElectron, uid, seedMeetings, seedNotes } from "./store.js";
+import { load, save, isElectron, uid } from "./store.js";
 
 const soft = { type: "spring", stiffness: 200, damping: 28, mass: 0.9 };
 
@@ -10,7 +10,7 @@ function useWindowDrag() {
   return useCallback((e) => {
     if (e.button !== 0 || e.target.closest("button") || e.target.closest("input")) return;
     const ox = e.clientX, oy = e.clientY;
-    const onMove = (ev) => window.notify?.setPos(ev.screenX - ox, ev.screenY - oy);
+    const onMove = (ev) => window.versify?.setPos(ev.screenX - ox, ev.screenY - oy);
     const onUp = () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -27,18 +27,16 @@ export default function App() {
   const [selected, setSelected] = useState(null);
   const [toast, setToast] = useState(null);
 
-  // boot: load persisted state (or seed a fresh install)
+  // boot: load persisted state — a fresh install starts clean & empty (no placeholders)
   useEffect(() => {
     (async () => {
       const onboarded = await load("onboarded", false);
       const n = await load("notes", null);
       const m = await load("meetings", null);
       const s = await load("settings", null);
-      setNotes(n || seedNotes());
-      setMeetings(m || seedMeetings());
+      setNotes(n || []);
+      setMeetings(m || []);
       if (s) setSettings(s);
-      if (!n) save("notes", seedNotes());
-      if (!m) save("meetings", seedMeetings());
       setView(onboarded ? "app" : "welcome");
     })();
   }, []);
@@ -51,14 +49,14 @@ export default function App() {
   const finishTour = () => { save("onboarded", true); setView("app"); };
 
   /* ---------- recording lifecycle ---------- */
-  const startRecording = () => { setRecording(true); window.notify?.setMode("hud"); };
+  const startRecording = () => { setRecording(true); window.versify?.setMode("hud"); };
 
   const handleDone = async (wav, meta, setProgress) => {
     let out;
     try {
-      if (isElectron && window.notify?.processAudio) {
-        const unsub = window.notify.onProgress?.((p) => setProgress(p.stage));
-        out = await window.notify.processAudio(wav);
+      if (isElectron && window.versify?.processAudio) {
+        const unsub = window.versify.onProgress?.((p) => setProgress(p.stage));
+        out = await window.versify.processAudio(wav);
         unsub && unsub();
       } else {
         // browser/demo: fabricate a result so the flow is testable
@@ -87,7 +85,7 @@ export default function App() {
     flash("Notes saved · " + (note.notes?.title || "Untitled"));
   };
 
-  const endRecording = () => { setRecording(false); window.notify?.setMode("home"); };
+  const endRecording = () => { setRecording(false); window.versify?.setMode("home"); };
   const handleCancel = (msg) => { endRecording(); if (msg) flash(msg); };
 
   const deleteNote = (id) => {
@@ -155,8 +153,8 @@ function TitleBar() {
   return (
     <div className="titlebar" onMouseDown={drag}>
       <div className="tb-lights">
-        <button className="lit close" onClick={() => window.notify?.quit()} title="Close" />
-        <button className="lit min" onClick={() => window.notify?.minimize()} title="Minimize" />
+        <button className="lit close" onClick={() => window.versify?.quit()} title="Close" />
+        <button className="lit min" onClick={() => window.versify?.minimize()} title="Minimize" />
         <span className="lit dim" />
       </div>
       <span className="tb-title osw">VERSIFY</span>
@@ -513,7 +511,7 @@ function PixelMark({ size = 28, glow }) {
     cv.width = size * dpr; cv.height = size * dpr;
     const x = cv.getContext("2d"); const n = (size * dpr) / 4;
     const m = ["g..g", "g..g", ".gg.", ".gg."]; // pixel V
-    m.forEach((r, ri) => { for (let i = 0; i < 4; i++) if (r[i] === "g") { x.fillStyle = i % 2 ? "#88FF63" : "#B6FF8C"; x.fillRect(i * n, ri * n, n, n); } });
+    m.forEach((r, ri) => { for (let i = 0; i < 4; i++) if (r[i] === "g") { x.fillStyle = i % 2 ? "#1F9E0A" : "#34BF18"; x.fillRect(i * n, ri * n, n, n); } });
   }, [size]);
   return <canvas ref={ref} className={"pixel-mark" + (glow ? " glow" : "")} style={{ width: size, height: size }} />;
 }
@@ -533,7 +531,7 @@ function PixelField() {
     const build = () => {
       W = cv.width = cv.offsetWidth; H = cv.height = cv.offsetHeight; cells = [];
       const c = Math.floor((W * H) / (PX * PX * 60));
-      for (let i = 0; i < c; i++) cells.push({ x: Math.floor(Math.random() * (W / PX)) * PX, y: Math.floor(Math.random() * (H / PX)) * PX, p: Math.random() * 6.28, sp: 0.4 + Math.random() * 1.1, col: Math.random() < 0.18 ? "#88FF63" : (Math.random() < 0.1 ? "#FFB36B" : "#ffffff") });
+      for (let i = 0; i < c; i++) cells.push({ x: Math.floor(Math.random() * (W / PX)) * PX, y: Math.floor(Math.random() * (H / PX)) * PX, p: Math.random() * 6.28, sp: 0.4 + Math.random() * 1.1, col: Math.random() < 0.18 ? "#34BF18" : (Math.random() < 0.1 ? "#D9791F" : "#13140E") });
     };
     build(); window.addEventListener("resize", build);
     let t = 0;
@@ -545,7 +543,7 @@ function PixelField() {
 }
 
 /* ------------------------------ helpers ------------------------------ */
-const SPEAKER_COLORS = ["#88FF63", "#FFB36B", "#7FB2FF", "#C8A6FF", "#FF7FB0"];
+const SPEAKER_COLORS = ["#1F9E0A", "#D9791F", "#2D6FE0", "#8A5BD6", "#D6468C"];
 function speakerColor(n) { return SPEAKER_COLORS[(n - 1) % SPEAKER_COLORS.length]; }
 function greeting() { const h = new Date().getHours(); return h < 12 ? "GOOD MORNING" : h < 18 ? "GOOD AFTERNOON" : "GOOD EVENING"; }
 function clock(iso) { return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
